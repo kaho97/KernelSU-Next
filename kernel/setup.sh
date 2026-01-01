@@ -2,8 +2,10 @@
 set -eu
 
 GKI_ROOT=$(pwd)
-OWNER="KernelSU-Next"
-REPO="$OWNER"
+# OWNER="KernelSU-Next"
+# REPO="$OWNER"
+REPO="KernelSU-Next" 
+OWNER="kaho97"
 
 display_usage() {
     echo "Usage: $0 [--cleanup | <commit-or-tag>]"
@@ -41,21 +43,35 @@ perform_cleanup() {
 # Sets up or update KernelSU-Next environment
 setup_kernelsu() {
     echo "[+] Setting up $REPO..."
-    test -d "$GKI_ROOT/$REPO" || git clone "https://github.com/$OWNER/$REPO" && echo "[+] Repository cloned."
+    # 如果目录不存在就 clone 
+    if [ ! -d "$GKI_ROOT/$REPO" ]; then 
+        git clone -b legacy "https://github.com/$OWNER/$REPO" "$GKI_ROOT/$REPO"
+        echo "[+] Repository cloned." 
+    fi 
+    
     cd "$GKI_ROOT/$REPO"
+    # 清理现场 
     git stash && echo "[-] Stashed current changes."
+    git pull origin legacy && echo "[+] Repository updated." 
+    
+    # 强制切换到 legacy 分支 
+    git checkout legacy && echo "[-] Checked out legacy branch."
 
-    BRANCH="$(git rev-parse --abbrev-ref origin/HEAD | sed 's@^origin/@@')"
-    if [ "$(git status | grep -Po 'v\d+(\.\d+)*' | head -n1)" ]; then
-        git checkout $BRANCH && echo "[-] Switched to $BRANCH branch."
-    fi
+    # === 应用补丁逻辑 === 
+    # 假设补丁文件名叫 legacy.patch
+    PATCH_FILE="$GKI_ROOT/$REPO/legacy.patch"
+    if [ -f "$PATCH_FILE" ]; then
+        echo "[+] Applying patch: $PATCH_FILE"
+        if git apply "$PATCH_FILE"; then 
+            echo "[+] Patch applied successfully."
+        else 
+            echo "[!] git apply failed, trying with patch command..." 
+            patch -p1 < "$PATCH_FILE" 
+        fi 
+    else echo "[!] No patch file found at $PATCH_FILE"
+    fi 
+    # =====================
 
-    git pull && echo "[+] Repository updated."
-    if [ -z "${1-}" ]; then
-        git checkout "$(git describe --abbrev=0 --tags)" && echo "[-] Checked out latest tag."
-    else
-        git checkout "$1" && echo "[-] Checked out $1." || echo "[-] Checkout default branch"
-    fi
     cd "$DRIVER_DIR"
     ln -sf "$(realpath --relative-to="$DRIVER_DIR" "$GKI_ROOT/$REPO/kernel")" "kernelsu" && echo "[+] Symlink created."
 
