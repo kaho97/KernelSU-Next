@@ -58,8 +58,8 @@ setup_kernelsu() {
     git checkout legacy && echo "[-] Checked out legacy branch."
 
     # === 应用补丁逻辑 === 
-    # 假设补丁文件名叫 legacy.patch
-    PATCH_FILE="$GKI_ROOT/$REPO/legacy.patch"
+    # 补丁文件名叫 legacy4.4.patch
+    PATCH_FILE="$GKI_ROOT/$REPO/legacy_4.4.patch"
     if [ -f "$PATCH_FILE" ]; then
         echo "[+] Applying patch: $PATCH_FILE"
         if git apply "$PATCH_FILE"; then 
