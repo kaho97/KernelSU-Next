@@ -685,7 +685,6 @@ int ksu_handle_vfs_read(struct file **file_ptr, char __user **buf_ptr, size_t *c
 	return 0;
 }
 
-__attribute__((deprecated))
 int ksu_handle_sys_read(unsigned int fd, char __user **buf_ptr,
 				size_t *count_ptr)
 {
@@ -800,7 +799,7 @@ static int sys_read_handler_pre(struct kprobe *p, struct pt_regs *regs)
 	char __user **buf_ptr = (char __user **)&PT_REGS_PARM2(real_regs);
 	size_t count_ptr = (size_t *)&PT_REGS_PARM3(real_regs);
 
-	return ksu_handle_sys_pread64(fd, buf_ptr, count_ptr, 0);
+	return ksu_handle_sys_read(fd, buf_ptr, count_ptr);
 }
 
 static int input_handle_event_handler_pre(struct kprobe *p,
