@@ -800,7 +800,7 @@ static int sys_read_handler_pre(struct kprobe *p, struct pt_regs *regs)
 	char __user **buf_ptr = (char __user **)&PT_REGS_PARM2(real_regs);
 	size_t count_ptr = (size_t *)&PT_REGS_PARM3(real_regs);
 
-	return ksu_handle_sys_read(fd, buf_ptr, count_ptr);
+	return ksu_handle_sys_pread64(fd, buf_ptr, count_ptr, 0);
 }
 
 static int input_handle_event_handler_pre(struct kprobe *p,
